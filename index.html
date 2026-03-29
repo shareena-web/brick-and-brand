@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brick & Brand — Style as Strategy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --coral: #ec4a31;
+    --navy: #44546a;
+    --slate: #8496b0;
+    --fog: #d5dbe5;
+    --dark: #1a2230;
+    --darker: #111720;
+    --cream: #faf9f7;
+    --blue-text: #a8c4e0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--darker);
+    color: var(--cream);
+    font-family: 'DM Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 15% 15%, rgba(68,84,106,0.28) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 85%, rgba(236,74,49,0.07) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── INTRO SCREEN ── */
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--darker);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 28px;
+    text-align: center;
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  #intro.out {
+    opacity: 0;
+    transform: translateY(-24px);
+    pointer-events: none;
+  }
+
+  .intro-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 18px;
+  }
+
+  .intro-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(44px, 10vw, 80px);
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .intro-logo em { color: var(--coral); font-style: normal; }
+
+  .intro-sub {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(13px, 2.5vw, 18px);
+    font-style: italic;
+    color: var(--slate);
+    margin-bottom: 44px;
+  }
+
+  .intro-rule {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, var(--coral), transparent);
+    margin: 0 auto 44px;
+  }
+
+  .intro-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(17px, 3vw, 23px);
+    color: var(--cream);
+    line-height: 1.75;
+    max-width: 560px;
+    margin-bottom: 52px;
+  }
+
+  .intro-body strong { color: var(--coral); font-weight: 600; }
+
+  .btn-start {
+    background: var(--coral);
+    color: white;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 18px 52px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-start:hover { background: #d43d25; }
+  .btn-start:active { transform: scale(0.97); }
+
+  .intro-credit {
+    position: absolute;
+    bottom: 24px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: rgba(132,150,176,0.35);
+    text-transform: uppercase;
+  }
+
+  /* ── APP SHELL ── */
+  #app {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.4s;
+  }
+
+  #app.show { opacity: 1; }
+
+  /* Header */
+  .hdr {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(132,150,176,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .hdr-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--cream);
+  }
+
+  .hdr-logo em { color: var(--coral); font-style: normal; }
+
+  .hdr-right { display: flex; align-items: center; gap: 16px; }
+
+  .hdr-sub {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--slate);
+    text-transform: uppercase;
+    display: none;
+  }
+
+  @media (min-width: 500px) { .hdr-sub { display: block; } }
+
+  .btn-reset {
+    background: none;
+    border: 1px solid rgba(132,150,176,0.25);
+    color: var(--slate);
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover { border-color: var(--coral); color: var(--coral); }
+
+  /* Progress bar */
+  .progress-wrap {
+    height: 2px;
+    background: rgba(132,150,176,0.1);
+    flex-shrink: 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--coral);
+    transition: width 0.5s ease;
+  }
+
+  /* Chat window */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    scroll-behavior: smooth;
+  }
+
+  #chat::-webkit-scrollbar { width: 3px; }
+  #chat::-webkit-scrollbar-thumb { background: rgba(132,150,176,0.2); border-radius: 2px; }
+
+  .msg {
+    display: flex;
+    gap: 12px;
+    animation: fadeUp 0.35s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .avatar.bot { background: var(--coral); color: white; }
+  .avatar.you { background: var(--navy); color: var(--fog); }
+
+  .bubble {
+    max-width: 82%;
+    padding: 14px 18px;
+    line-height: 1.75;
+  }
+
+  .msg.bot .bubble {
+    background: rgba(68,84,106,0.22);
+    border: 1px solid rgba(132,150,176,0.15);
+    border-left: 3px solid var(--coral);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--cream);
+    white-space: pre-wrap;
+  }
+
+  .msg.user .bubble {
+    background: rgba(68,84,106,0.35);
+    border: 1px solid rgba(132,150,176,0.35);
+    color: var(--blue-text);
+    font-size: 13px;
+    text-align: right;
+    white-space: pre-wrap;
+  }
+
+  /* Typing dots */
+  .dots { display: flex; gap: 5px; align-items: center; }
+  .dots span {
+    width: 6px; height: 6px;
+    background: var(--coral); border-radius: 50%;
+    animation: blink 1.2s infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%,80%,100% { opacity: 0.2; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Quick-reply chips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-left: 44px;
+    margin-top: -4px;
+  }
+
+  .chip {
+    background: rgba(68,84,106,0.25);
+    border: 1px solid rgba(132,150,176,0.25);
+    color: var(--fog);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 6px 14px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.18s;
+  }
+
+  .chip:hover { border-color: var(--coral); color: var(--coral); background: rgba(236,74,49,0.08); }
+
+  /* Profile card */
+  .profile-card {
+    margin-left: 44px;
+    background: linear-gradient(150deg, rgba(68,84,106,0.28), rgba(17,23,32,0.92));
+    border: 1px solid rgba(132,150,176,0.2);
+    border-top: 3px solid var(--coral);
+    padding: 28px 28px 24px;
+    max-width: 680px;
+    animation: fadeUp 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  .profile-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--coral);
+    margin-bottom: 24px;
+  }
+
+  .ps { margin-bottom: 22px; }
+
+  .ps-label {
+    font-size: 8px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ps-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(132,150,176,0.15);
+  }
+
+  .ps-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: var(--cream);
+    line-height: 1.72;
+    white-space: pre-wrap;
+  }
+
+  .shareena-note {
+    background: rgba(236,74,49,0.08);
+    border-left: 3px solid var(--coral);
+    padding: 16px 20px;
+    margin-top: 22px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.72;
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .btn-book {
+    background: var(--coral);
+    color: white;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+
+  .btn-book:hover { background: #d43d25; }
+
+  .btn-secondary {
+    background: none;
+    border: 1px solid rgba(132,150,176,0.3);
+    color: var(--slate);
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { border-color: var(--coral); color: var(--coral); }
+
+  /* Input area */
+  .input-zone {
+    padding: 14px 20px 20px;
+    border-top: 1px solid rgba(132,150,176,0.1);
+    flex-shrink: 0;
+  }
+
+  .input-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: rgba(68,84,106,0.12);
+    border: 1px solid rgba(132,150,176,0.2);
+    padding: 12px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrap:focus-within { border-color: rgba(236,74,49,0.4); }
+
+  #inp {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--cream);
+    resize: none;
+    line-height: 1.6;
+    max-height: 100px;
+  }
+
+  #inp::placeholder { color: var(--slate); font-style: italic; }
+
+  #send {
+    background: var(--coral);
+    border: none;
+    color: white;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  #send:hover { background: #d43d25; }
+  #send:active { transform: scale(0.93); }
+  #send:disabled { background: var(--slate); cursor: not-allowed; }
+
+  .input-hint {
+    font-size: 9px;
+    color: rgba(132,150,176,0.35);
+    letter-spacing: 0.1em;
+    margin-top: 7px;
+    text-align: right;
+  }
+
+  /* Done-state bottom bar */
+  .done-bar {
+    padding: 14px 20px;
+    border-top: 1px solid rgba(132,150,176,0.1);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-eyebrow">Brick & Brand Presents</div>
+  <div class="intro-logo">Style <em>&</em> Strategy</div>
+  <div class="intro-sub">Your career is the brand. Your style is the signal.</div>
+  <div class="intro-rule"></div>
+  <div class="intro-body">
+    Most people dress for the job they have.<br>
+    <strong>The most powerful people dress for the career they're building.</strong><br><br>
+    This is a private consultation to help you close the gap — intentionally, strategically, and on your terms.
+  </div>
+  <button class="btn-start" onclick="startApp()">Begin Your Consultation →</button>
+  <div class="intro-credit">© Brick & Brand · By Shareena</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-logo">Brick <em>&</em> Brand</div>
+    <div class="hdr-right">
+      <div class="hdr-sub">Style as Strategy</div>
+      <button class="btn-reset" onclick="resetAll()">Start Over</button>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-fill" id="prog" style="width:0%"></div>
+  </div>
+
+  <div id="chat"></div>
+
+  <div class="input-zone" id="input-zone">
+    <div class="input-wrap">
+      <textarea id="inp" placeholder="Type your answer…" rows="1"></textarea>
+      <button id="send" onclick="send()">→</button>
+    </div>
+    <div class="input-hint">Enter to send · Shift+Enter for new line</div>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `You are a direct, strategic personal style advisor built on the Brick & Brand methodology by Shareena — a corporate styling expert educated at FIT with deep expertise in using style as a business and career strategy tool.
+
+Your core belief: Style is not about vanity. It is a communication tool, a career accelerator, and a power signal. You help people close the gap between how they currently show up and how they need to show up to achieve their career goals.
+
+TONE: Direct, strategic, warm but no-nonsense. Like a high-performance career coach who happens to know style inside out. Every recommendation must connect to career impact, not just aesthetics.
+
+INDUSTRIES YOU UNDERSTAND:
+Finance & Banking · Investment Management · Law & Legal Services · Consulting & Professional Services · Technology & Engineering · Startups & Venture Capital · Media, Marketing & PR · Healthcare & Medicine · Education & Academia · Government & Public Policy · Military & Defense · Nonprofit & Social Impact · Real Estate & Architecture · Retail & Consumer Goods · Hospitality & Luxury · Creative Industries (Fashion, Design, Art) · Entertainment & Sports · Entrepreneurship & Small Business · Pharmaceuticals & Biotech · Insurance & Risk Management
+
+CAREER STAGES YOU SERVE:
+- Entry level: Building credibility fast, looking the part before they feel it
+- Mid-level: Differentiating from peers, showing leadership potential
+- Wanting a promotion: Dressing for the job above, not the job they have
+- Just got a promotion: Resetting their visual brand for their new level
+- Client-facing roles: Reading the room, commanding trust, matching client culture
+- Senior & executive: Authority dressing, presence, legacy
+- Career pivot: Bridging their old industry signals with their new target
+- Returning to work: Rebuilding confidence and relevance
+
+CONSULTATION FLOW — one or two questions at a time, conversationally:
+
+Step 1 — Name + industry (from the list above or their own) + career level/stage
+Step 2 — What they want style to DO for them right now (specific career goal: promotion, authority, client trust, confidence, pivot, etc.)
+Step 3 — Their current work environment and dress code
+Step 4 — What they think their current style is communicating — and what they WANT it to communicate instead (the gap)
+Step 5 — One style pattern or habit they know isn't working for them right now
+Step 6 — Budget for a strategic refresh: under $500 / $500–$1,500 / $1,500+
+
+After all 6 steps, deliver a COMPLETE Strategic Style Profile with these exact section headers:
+
+CAREER POSITIONING STATEMENT
+One powerful sentence that defines who this person is and what their style must now communicate at their level and in their industry. This is their style north star.
+
+WHAT YOUR CURRENT STYLE IS SAYING
+An honest, tactful assessment of what their described style patterns are likely communicating to colleagues, clients, and decision-makers — including any gaps that could be holding them back.
+
+THE STRATEGIC SHIFT
+Exactly what needs to change and why — framed as a career move, not a style makeover. Connect every change to professional impact.
+
+POWER OUTFIT FORMULAS
+4 specific outfit combinations mapped to their career scenarios (e.g., promotion interview, client meeting, daily authority, high-stakes presentation). Format: Scenario: [Item] + [Item] + [Item] = [The career signal it sends]
+
+STRATEGIC CAPSULE WARDROBE
+10 precise investment pieces specific to their industry, level, and goals. Not generic — name the exact item (e.g., "A structured midnight navy blazer with a clean lapel" not just "a blazer").
+
+WHAT TO STOP BUYING
+3 specific items or patterns that are diluting their professional signal. Be direct and specific.
+
+POWER MOVE
+One immediate, high-impact style shift they can make this week. Specific and actionable.
+
+SHOPPING STRATEGY
+Budget-matched recommendations. Under $500: Zara, H&M, Target, ASOS, ThredUp, Poshmark. $500–$1,500: Banana Republic, Ann Taylor, J.Crew, Nordstrom Rack, COS, Mango, & Other Stories. $1,500+: Nordstrom, Theory, Equipment, Reiss, Saks Off 5th, Net-a-Porter. Always mix smart investment pieces with strategic accessible finds.
+
+SHAREENA'S NOTE
+2–3 sentences in Shareena's voice — direct, warm, and empowering. Close with: "When you're ready to take this further, I'd love to work with you personally. Book a session at hello@brickandbrand.com."
+
+CRITICAL RULES:
+- Every recommendation must connect to career impact, not just aesthetics
+- Never say "it depends" — commit to specific recommendations
+- Be direct and honest, especially in the gap analysis
+- Make the person feel strategically seen, not just complimented`;
+
+let history = [];
+let step = 0;
+let done = false;
+let booted = false;
+
+function startApp() {
+  document.getElementById('intro').classList.add('out');
+  const app = document.getElementById('app');
+  app.classList.add('show');
+  if (!booted) { booted = true; boot(); }
+}
+
+async function boot() {
+  setLoading(true);
+  try {
+    const reply = await ask([{ role: 'user', content: "Hi, I'm ready for my style consultation." }]);
+    history = [{ role: 'assistant', content: reply }];
+    addBot(reply);
+    showChips(reply);
+  } catch(e) {
+    addBot("Welcome. I'm your Brick & Brand strategic style advisor.\n\nLet's get started — what's your name, what industry do you work in, and where are you in your career right now?");
+  }
+  setLoading(false);
+}
+
+async function send(text) {
+  const inp = document.getElementById('inp');
+  const msg = text || inp.value.trim();
+  if (!msg || done) return;
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  addUser(msg);
+  history.push({ role: 'user', content: msg });
+  step = Math.min(step + 1, 6);
+  document.getElementById('prog').style.width = (step / 6 * 100) + '%';
+
+  setLoading(true);
+  try {
+    const reply = await ask(history);
+    history.push({ role: 'assistant', content: reply });
+
+    const isProfile = reply.includes('CAREER POSITIONING STATEMENT') && reply.includes('POWER MOVE');
+    if (isProfile) {
+      renderProfile(reply);
+      document.getElementById('prog').style.width = '100%';
+      document.getElementById('input-zone').style.display = 'none';
+      showDoneBar();
+      done = true;
+    } else {
+      addBot(reply);
+      showChips(reply);
+    }
+  } catch(e) {
+    addBot('Something went wrong: ' + e.message + '\n\nPlease try again.');
+  }
+  setLoading(false);
+}
+
+async function ask(msgs) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: msgs, system: SYSTEM })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data.text;
+}
+
+function addBot(text) {
+  const chat = document.getElementById('chat');
+  const row = document.createElement('div');
+  row.className = 'msg bot';
+  row.innerHTML = `
+    <div class="avatar bot">B&B</div>
+    <div class="bubble">${esc(text)}</div>
+  `;
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addUser(text) {
+  removeChips();
+  const chat = document.getElementById('chat');
+  const row = document.createElement('div');
+  row.className = 'msg user';
+  row.innerHTML = `
+    <div class="avatar you">You</div>
+    <div class="bubble">${esc(text)}</div>
+  `;
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showChips(text) {
+  removeChips();
+  const lower = text.toLowerCase();
+  let chips = [];
+
+  if (lower.includes('industry') || lower.includes('field') || lower.includes('sector')) {
+    chips = ['Finance & Banking', 'Law & Legal', 'Technology', 'Healthcare', 'Media & Marketing', 'Consulting', 'Government', 'Education', 'Retail & Corporate', 'Nonprofit', 'Entrepreneurship', 'Creative / Design'];
+  } else if (lower.includes('career') && (lower.includes('stage') || lower.includes('level') || lower.includes('where are you'))) {
+    chips = ['Entry level', 'Mid-level', 'Want a promotion', 'Just got promoted', 'Senior / Executive', 'Career pivot', 'Returning to work'];
+  } else if (lower.includes('style') && (lower.includes('do for you') || lower.includes('goal') || lower.includes('achieve'))) {
+    chips = ['Get promoted', 'Command more authority', 'Build client trust', 'Boost my confidence', 'Look the part at my new level', 'Transition industries', 'Establish executive presence'];
+  } else if (lower.includes('dress code') || lower.includes('environment') || lower.includes('workplace')) {
+    chips = ['Business formal', 'Business casual', 'Smart casual', 'Creative / relaxed', 'Client-facing daily', 'Remote / hybrid'];
+  } else if (lower.includes('budget') || lower.includes('invest') || lower.includes('spend')) {
+    chips = ['Under $500', '$500–$1,500', '$1,500+'];
+  }
+
+  if (chips.length === 0) return;
+
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'chips';
+  wrap.id = 'chips';
+  chips.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = c;
+    btn.onclick = () => { removeChips(); send(c); };
+    wrap.appendChild(btn);
+  });
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeChips() {
+  const c = document.getElementById('chips');
+  if (c) c.remove();
+}
+
+let typingEl = null;
+function setLoading(on) {
+  const send = document.getElementById('send');
+  if (on) {
+    send.disabled = true;
+    const chat = document.getElementById('chat');
+    typingEl = document.createElement('div');
+    typingEl.className = 'msg bot';
+    typingEl.id = 'typing';
+    typingEl.innerHTML = `<div class="avatar bot">B&B</div><div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div>`;
+    chat.appendChild(typingEl);
+    chat.scrollTop = chat.scrollHeight;
+  } else {
+    send.disabled = false;
+    if (typingEl) { typingEl.remove(); typingEl = null; }
+  }
+}
+
+const SECTIONS = [
+  'CAREER POSITIONING STATEMENT',
+  'WHAT YOUR CURRENT STYLE IS SAYING',
+  'THE STRATEGIC SHIFT',
+  'POWER OUTFIT FORMULAS',
+  'STRATEGIC CAPSULE WARDROBE',
+  'WHAT TO STOP BUYING',
+  'POWER MOVE',
+  'SHOPPING STRATEGY',
+  "SHAREENA'S NOTE"
+];
+
+function renderProfile(text) {
+  const chat = document.getElementById('chat');
+  const card = document.createElement('div');
+  card.className = 'profile-card';
+
+  let html = `<div class="profile-title">Your Strategic Style Profile ✦</div>`;
+
+  let remaining = text;
+  SECTIONS.forEach((label, idx) => {
+    const next = SECTIONS[idx + 1];
+    const start = remaining.indexOf(label);
+    if (start === -1) return;
+    let end = next ? remaining.indexOf(next) : remaining.length;
+    if (end === -1) end = remaining.length;
+    const content = remaining.substring(start + label.length, end).replace(/^[\s:\n]+/, '').trim();
+    remaining = remaining.substring(end);
+
+    if (label === "SHAREENA'S NOTE") {
+      html += `<div class="shareena-note">${esc(content)}</div>`;
+    } else {
+      html += `
+        <div class="ps">
+          <div class="ps-label">${label}</div>
+          <div class="ps-value">${esc(content)}</div>
+        </div>`;
+    }
+  });
+
+  html += `
+    <div class="profile-actions">
+      <a class="btn-book" href="mailto:hello@brickandbrand.com?subject=Style Strategy Session — I just completed the Brick %26 Brand consultation">Book a Session with Shareena →</a>
+      <button class="btn-secondary" onclick="window.print()">Save My Profile</button>
+    </div>`;
+
+  card.innerHTML = html;
+  chat.appendChild(card);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showDoneBar() {
+  const bar = document.createElement('div');
+  bar.className = 'done-bar';
+  bar.innerHTML = `
+    <a class="btn-book" href="mailto:hello@brickandbrand.com?subject=Style Strategy Session">Book a Session →</a>
+    <button class="btn-secondary" onclick="resetAll()">Start Over</button>
+  `;
+  document.getElementById('app').appendChild(bar);
+}
+
+function resetAll() {
+  history = []; step = 0; done = false;
+  document.getElementById('chat').innerHTML = '';
+  document.getElementById('prog').style.width = '0%';
+  document.getElementById('input-zone').style.display = '';
+  const bar = document.querySelector('.done-bar');
+  if (bar) bar.remove();
+  boot();
+}
+
+function esc(str) {
+  return str
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
+}
+
+// Textarea auto-resize
+document.getElementById('inp').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+
+document.getElementById('inp').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+</script>
+</body>
+</html>
